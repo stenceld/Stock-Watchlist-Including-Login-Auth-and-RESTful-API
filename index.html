@@ -1,0 +1,81 @@
+<!-- I certify that the HTML file I am submitting is all my own work. 
+ None of it is copied from any source or any person. -->
+<!-- Signed:Dominic Stencel  Date:11/3/2025 -->
+<!-- Author: Dominic Stencel -->
+<!-- Date: 11/3/2025->
+<!-- Class: CSC305 -->
+<!-- Project: Assignment 4b - Using Hostinger -->
+<!-- File Name: StencelAssignment4b\index.html -->
+ <!-- Sources: 
+    https://www.sitepoint.com/get-url-parameters-with-javascript/
+    https://claude.ai/
+ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Watchlist</title>
+</head>
+<body>
+    <form method="post" action="stockHandler.php">
+        <label for="ticker">Enter Stock Symbol: </label>
+        <input type="text" id="ticker" name="ticker" required>
+
+        <label for="quantity">Quantity of Shares: </label>
+        <input type="number" id="quantity" name="quantity" min="1" required>
+
+        <label for="price">Enter Purchase Price: </label>
+        <input type="number" id="price" name="price" step="0.01" min="0" required>
+
+        <button type="submit">Add to Watchlist</button>
+    </form>
+
+    <div id="message"></div>
+
+    <hr>
+
+    <section id="watchlist">
+        <h2>Your Watchlist</h2>
+        <p>Loading watchlist data...</p>
+    </section>
+
+    <script>
+        // Add event listener for DOMContentLoaded when the page is fully loaded
+        window.addEventListener('DOMContentLoaded', function() {
+            
+            // Have seen this concept done in a video before
+            // Used this source to help understand URLSearchParams:
+            // https://www.sitepoint.com/get-url-parameters-with-javascript/
+            // Turn the URL into an object we can work with
+            const urlParams = new URLSearchParams(window.location.search);
+            // Get the 'message' parameter from the URL
+            const message = urlParams.get('message');
+            
+            if (message) { // If there is a message in the URL
+                // Decode and display the message
+                document.getElementById('message').innerHTML = '<p>' + message + '</p>';
+            }
+
+            // Fetch and display watchlist
+            fetch('stockHandler.php')
+                // Use .then to handle the response
+                // Convert response to text
+                .then(response => response.text())
+
+                .then(html => { // Insert the HTML into the watchlist section
+                    document.getElementById('watchlist').innerHTML = html;
+                })
+
+                // If an error occurs, insert an error message into the watchlist section
+                .catch(error => { 
+                    console.error('Error loading watchlist:', error);
+                    document.getElementById('watchlist').innerHTML =
+                     '<p>Error loading watchlist data.</p>';
+                });
+        });
+    </script>
+    
+</body>
+</html>
