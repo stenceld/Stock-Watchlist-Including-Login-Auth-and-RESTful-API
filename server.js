@@ -1,10 +1,14 @@
 // I certify that this file I am submitting is all my own work.
 // None of it is copied from any source or any person.
-// Signed: Dominic Stencel  Date: 11/24/2025
+// Signed: Dominic Stencel  Date: 11/22/2025
+
 // Author: Dominic Stencel
-// Date: 11/24/2025
+// Date: 11/22/2025
 // Class: CSC305
 // Project: Assignment 5 - RESTful API and Login Authentication
+// Sources:
+//  - https://learn.zybooks.com/zybook/CSPCSS305DuerreFall2025/chapter/9/section/5
+    
 // File Name: server.js
 
 // Require Neccessary Modules

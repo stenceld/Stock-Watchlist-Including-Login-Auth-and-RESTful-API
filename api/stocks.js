@@ -1,10 +1,15 @@
 // I certify that this file I am submitting is all my own work.
 // None of it is copied from any source or any person.
-// Signed: Dominic Stencel  Date: 11/24/2025
+// Signed: Dominic Stencel  Date: 11/22/2025
+
 // Author: Dominic Stencel
-// Date: 11/24/2025
+// Date: 11/22/2025
 // Class: CSC305
 // Project: Assignment 5 - RESTful API and Login Authentication
+// Sources:
+//  - https://learn.zybooks.com/zybook/CSPCSS305DuerreFall2025/chapter/9/section/5
+//  - claude.ai
+
 // File Name: api/stocks.js
 
 // Require Modules
@@ -17,7 +22,8 @@ const Stock = require("../models/stockModel");
 const secret = "4d14ac915cf873fdb5f24c942d38c401";
 
 // ============================================
-// Helper Function - Get stock data from Yahoo Finance API
+// getYahooStock Price Function - 
+// Get stock data from Yahoo Finance API
 // ============================================
 async function getYahooStockPrice(ticker) {
     // Build URL for Yahoo Finance API
@@ -27,10 +33,13 @@ async function getYahooStockPrice(ticker) {
     try {
         // Fetch data from Yahoo Finance
         // User-Agent header required to avoid 403 forbidden errors
+        // Used AI to healp generate this fetch with headers
+        // Source: claude.ai
         const response = await fetch(url, {
             method: "GET",
             headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" + 
+                "AppleWebKit/537.36"
             }
         });
 
@@ -63,7 +72,7 @@ async function getYahooStockPrice(ticker) {
 }
 
 // ============================================
-// Helper Function - Verify token and get user info
+// verifyToken Function - Verify token and get user info
 // ============================================
 function verifyToken(req) {
     // Get Authorization header
@@ -184,7 +193,8 @@ router.post("/", async (req, res) => {
 
     // Validate required fields
     if (!ticker || !sharesOwned || !purchasePrice) {
-        res.status(400).json({ error: "Missing ticker, sharesOwned, and/or purchasePrice" });
+        res.status(400).json({ error: "Missing ticker, sharesOwned," + 
+            "and/or purchasePrice" });
         return;
     }
 

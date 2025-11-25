@@ -1,4 +1,15 @@
+// I certify that this file I am submitting is all my own work.
+// None of it is copied from any source or any person.
+// Signed: Dominic Stencel  Date: 11/22/2025
 
+// Author: Dominic Stencel
+// Date: 11/22/2025
+// Class: CSC305
+// Project: Assignment 5 - RESTful API and Login Authentication
+// Sources:
+//  - https://learn.zybooks.com/zybook/CSPCSS305DuerreFall2025/chapter/9/section/5
+
+// File Name: api/users.js
 
 
 // Require Modules
@@ -11,7 +22,10 @@ const Users = require("../models/userModel");
 // Create Secret Key
 const secret = "4d14ac915cf873fdb5f24c942d38c401";
 
-// Add new user to database
+
+// ============================================
+// POST /register - Register New User to database
+// ============================================
 router.post("/register", async (req, res) => {
     // Get username and password from request body
     const { username, password } = req.body;
@@ -50,7 +64,10 @@ router.post("/register", async (req, res) => {
     }
 });
 
-// Sends token if login is successful
+
+// ============================================
+// Post /login - Sends token if login is successful
+// ============================================
 router.post("/login", async (req, res) => {
     // Get username and password from request body
     const { username, password } = req.body;
@@ -91,4 +108,5 @@ router.post("/login", async (req, res) => {
     }
 });
 
+// Export router
 module.exports = router;
