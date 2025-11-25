@@ -1,15 +1,11 @@
-<!-- I certify that the HTML file I am submitting is all my own work. 
- None of it is copied from any source or any person. -->
-<!-- Signed:Dominic Stencel  Date:11/3/2025 -->
+<!-- I certify that this file I am submitting is all my own work. 
+None of it is copied from any source or any person. -->
+<!-- Signed: Dominic Stencel  Date: 11/24/2025 -->
 <!-- Author: Dominic Stencel -->
-<!-- Date: 11/3/2025->
+<!-- Date: 11/24/2025 -->
 <!-- Class: CSC305 -->
-<!-- Project: Assignment 4b - Using Hostinger -->
-<!-- File Name: StencelAssignment4b\index.html -->
- <!-- Sources: 
-    https://www.sitepoint.com/get-url-parameters-with-javascript/
-    https://claude.ai/
- -->
+<!-- Project: Assignment 5 - RESTful API and Login Authentication -->
+<!-- File Name: public/index.html -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,63 +15,346 @@
     <title>Stock Watchlist</title>
 </head>
 <body>
-    <form method="post" action="stockHandler.php">
-        <label for="ticker">Enter Stock Symbol: </label>
-        <input type="text" id="ticker" name="ticker" required>
+    <!-- Auth Section - Shown when user is not logged in -->
+    <section id="authSection">
+        <h1>Stock Watchlist - Login</h1>
 
-        <label for="quantity">Quantity of Shares: </label>
-        <input type="number" id="quantity" name="quantity" min="1" required>
+        <!-- Register Form -->
+        <h2>Register</h2>
+        <form id="registerForm">
+            <label for="regUsername">Username:</label>
+            <input type="text" id="regUsername" name="username" required>
 
-        <label for="price">Enter Purchase Price: </label>
-        <input type="number" id="price" name="price" step="0.01" min="0" required>
+            <label for="regPassword">Password:</label>
+            <input type="password" id="regPassword" name="password" required>
 
-        <button type="submit">Add to Watchlist</button>
-    </form>
+            <button type="submit">Register</button>
+        </form>
 
-    <div id="message"></div>
+        <!-- Login Form -->
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" name="username" required>
 
-    <hr>
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="password" required>
 
-    <section id="watchlist">
+            <button type="submit">Login</button>
+        </form>
+
+        <div id="authMessage"></div>
+    </section>
+
+    <!-- Dashboard Section - Shown when user is logged in -->
+    <section id="dashboardSection" class="hidden">
+        <button id="logoutBtn">Logout</button>
+
+        <!-- Add Stock Form -->
+        <h2>Add Stock</h2>
+        <form id="addStockForm">
+            <label for="ticker">Ticker Symbol:</label>
+            <input type="text" id="ticker" name="ticker" required>
+
+            <label for="sharesOwned">Shares Owned:</label>
+            <input type="number" id="sharesOwned" name="sharesOwned" min="1" required>
+
+            <label for="purchasePrice">Purchase Price:</label>
+            <input type="number" id="purchasePrice" name="purchasePrice" step="0.01" min="0" required>
+
+            <button type="submit">Add to Watchlist</button>
+        </form>
+
+        <div id="stockMessage"></div>
+
+        <hr>
+
+        <!-- Watchlist Display -->
         <h2>Your Watchlist</h2>
-        <p>Loading watchlist data...</p>
+        <div id="watchlist">
+            <p>Loading watchlist...</p>
+        </div>
+
+        <!-- Portfolio Summary -->
+        <h3>Portfolio Summary</h3>
+        <div id="portfolioSummary"></div>
     </section>
 
     <script>
-        // Add event listener for DOMContentLoaded when the page is fully loaded
-        window.addEventListener('DOMContentLoaded', function() {
-            
-            // Have seen this concept done in a video before
-            // Used this source to help understand URLSearchParams:
-            // https://www.sitepoint.com/get-url-parameters-with-javascript/
-            // Turn the URL into an object we can work with
-            const urlParams = new URLSearchParams(window.location.search);
-            // Get the 'message' parameter from the URL
-            const message = urlParams.get('message');
-            
-            if (message) { // If there is a message in the URL
-                // Decode and display the message
-                document.getElementById('message').innerHTML = '<p>' + message + '</p>';
+        // API Base URL
+        const API_URL = "http://localhost:3000/api";
+
+        // ============================================
+        // Page Load - Check if user is logged in
+        // ============================================
+        window.addEventListener("DOMContentLoaded", function() {
+            const token = localStorage.getItem("token");
+
+            if (token) {
+                // User is logged in, show dashboard
+                showDashboard();
+                fetchWatchlist();
+            } else {
+                // User is not logged in, show auth section
+                showAuth();
+            }
+        });
+
+        // ============================================
+        // Show/Hide Sections
+        // ============================================
+        function showAuth() {
+            document.getElementById("authSection").classList.remove("hidden");
+            document.getElementById("dashboardSection").classList.add("hidden");
+        }
+
+        function showDashboard() {
+            document.getElementById("authSection").classList.add("hidden");
+            document.getElementById("dashboardSection").classList.remove("hidden");
+        }
+
+        // ============================================
+        // Register Form Submit
+        // ============================================
+        document.getElementById("registerForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById("regUsername").value;
+            const password = document.getElementById("regPassword").value;
+
+            try {
+                const response = await fetch(API_URL + "/users/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("authMessage").innerHTML = 
+                        "<p>Registration successful! Please login.</p>";
+                    document.getElementById("registerForm").reset();
+                } else {
+                    document.getElementById("authMessage").innerHTML = 
+                        "<p>Error: " + data.error + "</p>";
+                }
+            } catch (error) {
+                document.getElementById("authMessage").innerHTML = 
+                    "<p>Error: " + error.message + "</p>";
+            }
+        });
+
+        // ============================================
+        // Login Form Submit
+        // ============================================
+        document.getElementById("loginForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById("loginUsername").value;
+            const password = document.getElementById("loginPassword").value;
+
+            try {
+                const response = await fetch(API_URL + "/users/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save token to localStorage
+                    localStorage.setItem("token", data.token);
+                    document.getElementById("loginForm").reset();
+                    showDashboard();
+                    fetchWatchlist();
+                } else {
+                    document.getElementById("authMessage").innerHTML = 
+                        "<p>Error: " + data.error + "</p>";
+                }
+            } catch (error) {
+                document.getElementById("authMessage").innerHTML = 
+                    "<p>Error: " + error.message + "</p>";
+            }
+        });
+
+        // ============================================
+        // Logout Button
+        // ============================================
+        document.getElementById("logoutBtn").addEventListener("click", function() {
+            localStorage.removeItem("token");
+            showAuth();
+            document.getElementById("authMessage").innerHTML = "";
+        });
+
+        // ============================================
+        // Add Stock Form Submit
+        // ============================================
+        document.getElementById("addStockForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const ticker = document.getElementById("ticker").value;
+            const sharesOwned = document.getElementById("sharesOwned").value;
+            const purchasePrice = document.getElementById("purchasePrice").value;
+            const token = localStorage.getItem("token");
+
+            try {
+                const response = await fetch(API_URL + "/stocks", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        ticker: ticker,
+                        sharesOwned: sharesOwned,
+                        purchasePrice: purchasePrice
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("stockMessage").innerHTML = 
+                        "<p>" + data.message + "</p>";
+                    document.getElementById("addStockForm").reset();
+                    fetchWatchlist();
+                } else {
+                    if (response.status === 401) {
+                        // Token expired or invalid
+                        localStorage.removeItem("token");
+                        showAuth();
+                    }
+                    document.getElementById("stockMessage").innerHTML = 
+                        "<p>Error: " + data.error + "</p>";
+                }
+            } catch (error) {
+                document.getElementById("stockMessage").innerHTML = 
+                    "<p>Error: " + error.message + "</p>";
+            }
+        });
+
+        // ============================================
+        // Fetch and Display Watchlist
+        // ============================================
+        async function fetchWatchlist() {
+            const token = localStorage.getItem("token");
+
+            try {
+                const response = await fetch(API_URL + "/stocks", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayWatchlist(data.stocks);
+                    displayPortfolio(data.portfolio);
+                } else {
+                    if (response.status === 401) {
+                        // Token expired or invalid
+                        localStorage.removeItem("token");
+                        showAuth();
+                    }
+                    document.getElementById("watchlist").innerHTML = 
+                        "<p>Error loading watchlist.</p>";
+                }
+            } catch (error) {
+                document.getElementById("watchlist").innerHTML = 
+                    "<p>Error: " + error.message + "</p>";
+            }
+        }
+
+        // ============================================
+        // Display Watchlist Table
+        // ============================================
+        function displayWatchlist(stocks) {
+            if (stocks.length === 0) {
+                document.getElementById("watchlist").innerHTML = 
+                    "<p>Your watchlist is empty. Add some stocks!</p>";
+                return;
             }
 
-            // Fetch and display watchlist
-            fetch('stockHandler.php')
-                // Use .then to handle the response
-                // Convert response to text
-                .then(response => response.text())
+            let html = "<table>";
+            html += "<tr>";
+            html += "<th>Ticker</th>";
+            html += "<th>Company Name</th>";
+            html += "<th>Shares</th>";
+            html += "<th>Purchase Price</th>";
+            html += "<th>Current Price</th>";
+            html += "<th>Total Value</th>";
+            html += "<th>Profit/Loss</th>";
+            html += "<th>Action</th>";
+            html += "</tr>";
 
-                .then(html => { // Insert the HTML into the watchlist section
-                    document.getElementById('watchlist').innerHTML = html;
-                })
+            for (const stock of stocks) {
+                html += "<tr>";
+                html += "<td>" + stock.ticker + "</td>";
+                html += "<td>" + stock.companyName + "</td>";
+                html += "<td>" + stock.sharesOwned + "</td>";
+                html += "<td>$" + stock.purchasePrice.toFixed(2) + "</td>";
+                html += "<td>$" + stock.currentPrice.toFixed(2) + "</td>";
+                html += "<td>$" + stock.currentValue.toFixed(2) + "</td>";
+                html += "<td>$" + stock.profitLoss.toFixed(2) + "</td>";
+                html += "<td><button onclick=\"deleteStock('" + stock._id + "')\">Delete</button></td>";
+                html += "</tr>";
+            }
 
-                // If an error occurs, insert an error message into the watchlist section
-                .catch(error => { 
-                    console.error('Error loading watchlist:', error);
-                    document.getElementById('watchlist').innerHTML =
-                     '<p>Error loading watchlist data.</p>';
+            html += "</table>";
+            document.getElementById("watchlist").innerHTML = html;
+        }
+
+        // ============================================
+        // Display Portfolio Summary
+        // ============================================
+        function displayPortfolio(portfolio) {
+            let html = "<p><strong>Total Value:</strong> $" + portfolio.totalCurrentValue.toFixed(2) + "</p>";
+            html += "<p><strong>Total Cost Basis:</strong> $" + portfolio.totalCostBasis.toFixed(2) + "</p>";
+            html += "<p><strong>Total Profit/Loss:</strong> $" + portfolio.totalProfitLoss.toFixed(2) + "</p>";
+            document.getElementById("portfolioSummary").innerHTML = html;
+        }
+
+        // ============================================
+        // Delete Stock
+        // ============================================
+        async function deleteStock(stockId) {
+            const token = localStorage.getItem("token");
+
+            try {
+                const response = await fetch(API_URL + "/stocks/" + stockId, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
                 });
-        });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("stockMessage").innerHTML = 
+                        "<p>" + data.message + "</p>";
+                    fetchWatchlist();
+                } else {
+                    if (response.status === 401) {
+                        localStorage.removeItem("token");
+                        showAuth();
+                    }
+                    document.getElementById("stockMessage").innerHTML = 
+                        "<p>Error: " + data.error + "</p>";
+                }
+            } catch (error) {
+                document.getElementById("stockMessage").innerHTML = 
+                    "<p>Error: " + error.message + "</p>";
+            }
+        }
     </script>
-    
 </body>
 </html>
