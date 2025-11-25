@@ -91,11 +91,9 @@ None of it is copied from any source or any person. -->
             const token = localStorage.getItem("token");
 
             if (token) {
-                // User is logged in, show dashboard
                 showDashboard();
                 fetchWatchlist();
             } else {
-                // User is not logged in, show auth section
                 showAuth();
             }
         });
@@ -122,28 +120,19 @@ None of it is copied from any source or any person. -->
             const username = document.getElementById("regUsername").value;
             const password = document.getElementById("regPassword").value;
 
-            try {
-                const response = await fetch(API_URL + "/users/register", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ username: username, password: password })
-                });
+            const response = await fetch(API_URL + "/users/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (response.ok) {
-                    document.getElementById("authMessage").innerHTML = 
-                        "<p>Registration successful! Please login.</p>";
-                    document.getElementById("registerForm").reset();
-                } else {
-                    document.getElementById("authMessage").innerHTML = 
-                        "<p>Error: " + data.error + "</p>";
-                }
-            } catch (error) {
-                document.getElementById("authMessage").innerHTML = 
-                    "<p>Error: " + error.message + "</p>";
+            if (response.ok) {
+                document.getElementById("authMessage").innerHTML = "<p>Registration successful! Please login.</p>";
+                document.getElementById("registerForm").reset();
+            } else {
+                document.getElementById("authMessage").innerHTML = "<p>Error: " + data.error + "</p>";
             }
         });
 
@@ -156,30 +145,21 @@ None of it is copied from any source or any person. -->
             const username = document.getElementById("loginUsername").value;
             const password = document.getElementById("loginPassword").value;
 
-            try {
-                const response = await fetch(API_URL + "/users/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ username: username, password: password })
-                });
+            const response = await fetch(API_URL + "/users/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (response.ok) {
-                    // Save token to localStorage
-                    localStorage.setItem("token", data.token);
-                    document.getElementById("loginForm").reset();
-                    showDashboard();
-                    fetchWatchlist();
-                } else {
-                    document.getElementById("authMessage").innerHTML = 
-                        "<p>Error: " + data.error + "</p>";
-                }
-            } catch (error) {
-                document.getElementById("authMessage").innerHTML = 
-                    "<p>Error: " + error.message + "</p>";
+            if (response.ok) {
+                localStorage.setItem("token", data.token);
+                document.getElementById("loginForm").reset();
+                showDashboard();
+                fetchWatchlist();
+            } else {
+                document.getElementById("authMessage").innerHTML = "<p>Error: " + data.error + "</p>";
             }
         });
 
@@ -203,39 +183,27 @@ None of it is copied from any source or any person. -->
             const purchasePrice = document.getElementById("purchasePrice").value;
             const token = localStorage.getItem("token");
 
-            try {
-                const response = await fetch(API_URL + "/stocks", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + token
-                    },
-                    body: JSON.stringify({
-                        ticker: ticker,
-                        sharesOwned: sharesOwned,
-                        purchasePrice: purchasePrice
-                    })
-                });
+            const response = await fetch(API_URL + "/stocks", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    ticker: ticker,
+                    sharesOwned: sharesOwned,
+                    purchasePrice: purchasePrice
+                })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (response.ok) {
-                    document.getElementById("stockMessage").innerHTML = 
-                        "<p>" + data.message + "</p>";
-                    document.getElementById("addStockForm").reset();
-                    fetchWatchlist();
-                } else {
-                    if (response.status === 401) {
-                        // Token expired or invalid
-                        localStorage.removeItem("token");
-                        showAuth();
-                    }
-                    document.getElementById("stockMessage").innerHTML = 
-                        "<p>Error: " + data.error + "</p>";
-                }
-            } catch (error) {
-                document.getElementById("stockMessage").innerHTML = 
-                    "<p>Error: " + error.message + "</p>";
+            if (response.ok) {
+                document.getElementById("stockMessage").innerHTML = "<p>" + data.message + "</p>";
+                document.getElementById("addStockForm").reset();
+                fetchWatchlist();
+            } else {
+                document.getElementById("stockMessage").innerHTML = "<p>Error: " + data.error + "</p>";
             }
         });
 
@@ -245,31 +213,18 @@ None of it is copied from any source or any person. -->
         async function fetchWatchlist() {
             const token = localStorage.getItem("token");
 
-            try {
-                const response = await fetch(API_URL + "/stocks", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": "Bearer " + token
-                    }
-                });
+            const response = await fetch(API_URL + "/stocks", {
+                method: "GET",
+                headers: { "Authorization": "Bearer " + token }
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (response.ok) {
-                    displayWatchlist(data.stocks);
-                    displayPortfolio(data.portfolio);
-                } else {
-                    if (response.status === 401) {
-                        // Token expired or invalid
-                        localStorage.removeItem("token");
-                        showAuth();
-                    }
-                    document.getElementById("watchlist").innerHTML = 
-                        "<p>Error loading watchlist.</p>";
-                }
-            } catch (error) {
-                document.getElementById("watchlist").innerHTML = 
-                    "<p>Error: " + error.message + "</p>";
+            if (response.ok) {
+                displayWatchlist(data.stocks);
+                displayPortfolio(data.portfolio);
+            } else {
+                document.getElementById("watchlist").innerHTML = "<p>Error loading watchlist.</p>";
             }
         }
 
@@ -278,22 +233,12 @@ None of it is copied from any source or any person. -->
         // ============================================
         function displayWatchlist(stocks) {
             if (stocks.length === 0) {
-                document.getElementById("watchlist").innerHTML = 
-                    "<p>Your watchlist is empty. Add some stocks!</p>";
+                document.getElementById("watchlist").innerHTML = "<p>Your watchlist is empty. Add some stocks!</p>";
                 return;
             }
 
             let html = "<table>";
-            html += "<tr>";
-            html += "<th>Ticker</th>";
-            html += "<th>Company Name</th>";
-            html += "<th>Shares</th>";
-            html += "<th>Purchase Price</th>";
-            html += "<th>Current Price</th>";
-            html += "<th>Total Value</th>";
-            html += "<th>Profit/Loss</th>";
-            html += "<th>Action</th>";
-            html += "</tr>";
+            html += "<tr><th>Ticker</th><th>Company Name</th><th>Shares</th><th>Purchase Price</th><th>Current Price</th><th>Total Value</th><th>Profit/Loss</th><th>Action</th></tr>";
 
             for (const stock of stocks) {
                 html += "<tr>";
@@ -328,31 +273,18 @@ None of it is copied from any source or any person. -->
         async function deleteStock(stockId) {
             const token = localStorage.getItem("token");
 
-            try {
-                const response = await fetch(API_URL + "/stocks/" + stockId, {
-                    method: "DELETE",
-                    headers: {
-                        "Authorization": "Bearer " + token
-                    }
-                });
+            const response = await fetch(API_URL + "/stocks/" + stockId, {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token }
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (response.ok) {
-                    document.getElementById("stockMessage").innerHTML = 
-                        "<p>" + data.message + "</p>";
-                    fetchWatchlist();
-                } else {
-                    if (response.status === 401) {
-                        localStorage.removeItem("token");
-                        showAuth();
-                    }
-                    document.getElementById("stockMessage").innerHTML = 
-                        "<p>Error: " + data.error + "</p>";
-                }
-            } catch (error) {
-                document.getElementById("stockMessage").innerHTML = 
-                    "<p>Error: " + error.message + "</p>";
+            if (response.ok) {
+                document.getElementById("stockMessage").innerHTML = "<p>" + data.message + "</p>";
+                fetchWatchlist();
+            } else {
+                document.getElementById("stockMessage").innerHTML = "<p>Error: " + data.error + "</p>";
             }
         }
     </script>
